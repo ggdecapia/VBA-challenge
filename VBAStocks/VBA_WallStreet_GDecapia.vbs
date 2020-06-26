@@ -34,8 +34,8 @@ Sub MultiYearStockData()
         ws.Cells(1, 12).Value = "Stock Volume"
 
         'determine number of rows in each worksheet
-        'LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
-        LastRow = ws.UsedRange.Rows.Count
+        LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+        'LastRow = ws.UsedRange.Rows.Count
         
         'store initial values for each ticker set of each sheet
         TickerValue = ws.Cells(2, 1).Value  'NEW
@@ -51,12 +51,12 @@ Sub MultiYearStockData()
                CloseValue = ws.Cells(RowNum, 6).Value
                YearlyChange = CloseValue - OpenValue
                
-               'erroneous data handling; this prevents div/0
-               If OpenValue <> 0 Then
-                  PercentChange = (CloseValue - OpenValue) / OpenValue
-               Else
+               'erroneous data handling at the end of each ticker dataset; this prevents div/0
+               If OpenValue = 0 Then
                   YearlyChange = 0
                   PercentChange = 0
+               Else
+                  PercentChange = (CloseValue - OpenValue) / OpenValue
                End If
                
                'display each ticker summary
@@ -68,10 +68,10 @@ Sub MultiYearStockData()
                'format numeric cells
                ws.Cells(TickerCounter + 1, 10).NumberFormat = "###,##0.00"
                ws.Cells(TickerCounter + 1, 11).NumberFormat = "###,##0.00%"
-               If YearlyChange > 0 Then
-                  ws.Cells(TickerCounter + 1, 10).Interior.ColorIndex = 4
-               ElseIf YearlyChange < 0 Then
+               If YearlyChange < 0 Then
                   ws.Cells(TickerCounter + 1, 10).Interior.ColorIndex = 3
+               Else
+                  ws.Cells(TickerCounter + 1, 10).Interior.ColorIndex = 4
                End If
                
                'display/add new ticker row; reset accumulators
@@ -82,7 +82,11 @@ Sub MultiYearStockData()
                StockVolume = ws.Cells(RowNum + 1, 7).Value
                
             Else
-            
+               'find first non-zero Open Value if first row in a ticker dataset is zero
+               If OpenValue = 0 Then
+                  OpenValue = ws.Cells(RowNum + 1, 3).Value
+               End If
+               
                'accumulate Stock Volume value for each ticket set
                StockVolume = StockVolume + ws.Cells(RowNum + 1, 7).Value
                
@@ -96,7 +100,7 @@ Sub MultiYearStockData()
         'CHALLENGES section*
         '*******************
     
-        'initialize greatest percent increase/decrease, total volume and corresponding ticker value
+        'initialize greatest percent increase/decrease, total volume
         GreatestPercentIncrease = 0
         GreatestPercentDecrease = 0
         GreatestTotalVolume = 0
